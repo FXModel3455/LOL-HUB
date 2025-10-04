@@ -1,0 +1,151 @@
+-- 🔥 LOL HUB 🔥
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Crear ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LOLHub"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Función para crear bordes rainbow (estático)
+local function rainbowBorder(frame)
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Thickness = 3
+	UIStroke.Parent = frame
+	UIStroke.Color = Color3.fromHSV(math.random(), 1, 1) -- Color inicial aleatorio
+end
+
+-- Frame principal
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 200)
+frame.Position = UDim2.new(0.3, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+rainbowBorder(frame)
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "🔥 LOL HUB 🔥"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 24
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = frame
+
+-- Botón cerrar
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0,40,0,40)
+closeBtn.Position = UDim2.new(1,-45,0,5)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 20
+closeBtn.BackgroundColor3 = Color3.fromRGB(50,0,0)
+closeBtn.Active = true
+closeBtn.Draggable = true
+closeBtn.Parent = frame
+rainbowBorder(closeBtn)
+
+closeBtn.MouseButton1Click:Connect(function()
+	frame.Visible = false
+end)
+
+-- Botón flotante para abrir GUI
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0,120,0,40)
+toggleBtn.Position = UDim2.new(0.05,0,0.05,0)
+toggleBtn.Text = "LOL HUB🔥"
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.TextSize = 20
+toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.Parent = screenGui
+rainbowBorder(toggleBtn)
+
+toggleBtn.MouseButton1Click:Connect(function()
+	frame.Visible = true
+end)
+
+-- Variables de estado
+local humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
+local defaultJump = humanoid.JumpPower
+local defaultSpeed = humanoid.WalkSpeed
+local jumpBoostEnabled = false
+local speedBoostEnabled = false
+local espEnabled = false
+
+-- Función JumpBoost
+local function setJumpBoost(on)
+	jumpBoostEnabled = on
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		char:FindFirstChildOfClass("Humanoid").JumpPower = on and 80 or defaultJump
+	end
+end
+
+-- Función SpeedBoost
+local function setSpeedBoost(on)
+	speedBoostEnabled = on
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		char:FindFirstChildOfClass("Humanoid").WalkSpeed = on and 60 or defaultSpeed
+	end
+end
+
+-- Función ESP Rojo
+local function setESP(on)
+	espEnabled = on
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			if on then
+				local esp = Instance.new("BillboardGui")
+				esp.Name = "LOLHubESP"
+				esp.Size = UDim2.new(0,200,0,50)
+				esp.AlwaysOnTop = true
+				esp.Parent = plr.Character.HumanoidRootPart
+
+				local text = Instance.new("TextLabel")
+				text.Size = UDim2.new(1,0,1,0)
+				text.BackgroundTransparency = 1
+				text.Text = plr.Name
+				text.Font = Enum.Font.SourceSansBold
+				text.TextSize = 14
+				text.TextColor3 = Color3.fromRGB(255,0,0) -- Rojo fijo
+				text.Parent = esp
+			else
+				local esp = plr.Character.HumanoidRootPart:FindFirstChild("LOLHubESP")
+				if esp then esp:Destroy() end
+			end
+		end
+	end
+end
+
+-- Crear botones
+local function makeBtn(text, pos, callback)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0,220,0,40)
+	btn.Position = UDim2.new(0,15,0,pos)
+	btn.Text = text
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 20
+	btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Parent = frame
+	btn.MouseButton1Click:Connect(callback)
+	rainbowBorder(btn) -- Solo borde rainbow estático
+end
+
+makeBtn("Jump Boost (80)", 50, function() setJumpBoost(not jumpBoostEnabled) end)
+makeBtn("Speed Boost (60)", 95, function() setSpeedBoost(not speedBoostEnabled) end)
+makeBtn("ESP Rojo", 140, function() setESP(not espEnabled) end)
+
+-- Reaplicar al respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+	char:WaitForChild("Humanoid")
+	if jumpBoostEnabled then setJumpBoost(true) end
+	if speedBoostEnabled then setSpeedBoost(true) end
+	if espEnabled then setESP(true) end
+end)
